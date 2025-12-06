@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Account Status Management</title>
+    <link rel="icon" href="/favicon.ico" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #718096;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card .label {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stat-card .value {
+            color: #2d3748;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .stat-card .change {
+            font-size: 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-card .change.positive {
+            color: #48bb78;
+        }
+
+        .stat-card .change.negative {
+            color: #f56565;
+        }
+
+        .analytics-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .analytics-section h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .metric-box {
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .metric-box .metric-label {
+            color: #718096;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .metric-box .metric-value {
+            color: #2d3748;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .metric-box .metric-sub {
+            color: #a0aec0;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .main-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: #718096;
+            cursor: pointer;
+            font-size: 16px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: #dd6b20;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+
+        .btn-secondary {
+            background: #cbd5e0;
+            color: #2d3748;
+        }
+
+        .btn-secondary:hover {
+            background: #a0aec0;
+        }
+
+        .user-list {
+            margin-top: 20px;
+        }
+
+        .user-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .user-card .user-id {
+            font-family: monospace;
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .user-card .email {
+            font-size: 16px;
+            font-weight: 500;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+
+        .user-card .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .status.trial_active {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .status.active_paid {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status.trial_expired {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status.grace_period {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .status.cancelled {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .status.disabled_by_admin {
+            background: #feb2b2;
+            color: #742a2a;
+        }
+
+        .user-card .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .user-card .actions button {
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #4a5568;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.active {
+            display: block;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border-left: 4px solid #48bb78;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border-left: 4px solid #f56565;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .spinner {
+            border: 3px solid #e2e8f0;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .quick-actions {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .quick-actions h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛠️ Admin Dashboard</h1>
+            <p>Account Status Management System</p>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <!-- Enhanced Analytics Section -->
+        <div class="analytics-section" id="analyticsSection">
+            <h2>📊 Analytics Overview</h2>
+            
+            <div class="metrics-row">
+                <div class="metric-box">
+                    <div class="metric-label">💰 Monthly Recurring Revenue</div>
+                    <div class="metric-value" id="mrrValue">$0</div>
+                    <div class="metric-sub">Annual: $<span id="arrValue">0</span></div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">📈 Paid Conversion Rate</div>
+                    <div class="metric-value" id="paidConversionValue">0%</div>
+                    <div class="metric-sub">Trial conversion: <span id="trialConversionValue">0%</span></div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">🔥 Active Users</div>
+                    <div class="metric-value" id="activeUsersValue">0</div>
+                    <div class="metric-sub">Retention: <span id="retentionValue">0%</span></div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">📉 Churn Rate</div>
+                    <div class="metric-value" id="churnValue">0%</div>
+                    <div class="metric-sub">Cancelled: <span id="cancelledValue">0</span> users</div>
+                </div>
+            </div>
+
+            <div class="metrics-row">
+                <div class="metric-box">
+                    <div class="metric-label">🆕 New Users This Week</div>
+                    <div class="metric-value" id="weeklyNewValue">0</div>
+                    <div class="metric-sub">Today: <span id="todayNewValue">0</span></div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-label">📅 New Users This Month</div>
+                    <div class="metric-value" id="monthlyNewValue">0</div>
+                    <div class="metric-sub">Growth trend</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="label">Total Users</div>
+                <div class="value">...</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('users')">👥 Users</button>
+                <button class="tab" onclick="switchTab('actions')">⚡ Quick Actions</button>
+                <button class="tab" onclick="switchTab('bulk')">📦 Bulk Operations</button>
+                <button class="tab" onclick="switchTab('notifications')">🔔 Notifications</button>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="users-tab" class="tab-content active">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search by user ID or email..." onkeyup="filterUsers()">
+                    <button class="btn btn-primary" onclick="refreshUsers()">🔄 Refresh</button>
+                </div>
+
+                <div id="userList" class="user-list">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading users...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions Tab -->
+            <div id="actions-tab" class="tab-content">
+                <div class="quick-actions">
+                    <h3>Quick User Management</h3>
+                    <div class="form-group">
+                        <label>User ID</label>
+                        <input type="text" id="quickUserId" placeholder="Enter user ID...">
+                    </div>
+                    <div class="quick-actions-grid">
+                        <button class="btn btn-success" onclick="quickMarkAsPaid()">💳 Mark as Paid (1 month)</button>
+                        <button class="btn btn-warning" onclick="quickExtendSubscription()">⏰ Extend +7 days</button>
+                        <button class="btn btn-primary" onclick="quickResetTrial()">🔄 Reset Trial</button>
+                        <button class="btn btn-danger" onclick="quickDisableAccount()">🚫 Disable Account</button>
+                        <button class="btn btn-success" onclick="quickEnableAccount()">✅ Enable Account</button>
+                        <button class="btn btn-secondary" onclick="quickCancelSubscription()">❌ Cancel Subscription</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bulk Operations Tab -->
+            <div id="bulk-tab" class="tab-content">
+                <div class="quick-actions">
+                    <h3>Bulk Operations</h3>
+                    <p style="margin-bottom: 20px; color: #718096;">Enter user IDs (one per line) for bulk operations</p>
+                    <div class="form-group">
+                        <label>User IDs</label>
+                        <textarea id="bulkUserIds" placeholder="user1&#10;user2&#10;user3..." rows="8"></textarea>
+                    </div>
+                    <div class="quick-actions-grid">
+                        <button class="btn btn-success" onclick="bulkMarkAsPaid()">💳 Bulk Mark as Paid</button>
+                        <button class="btn btn-primary" onclick="bulkExtend()">⏰ Bulk Extend +7 days</button>
+                        <button class="btn btn-danger" onclick="bulkDisable()">🚫 Bulk Disable</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Tab -->
+            <div id="notifications-tab" class="tab-content">
+                <div class="quick-actions">
+                    <h3>📢 Push Notification Portal</h3>
+                    
+                    <!-- Mass Notification -->
+                    <div style="background: white; padding: 25px; border-radius: 12px; margin-bottom: 25px; border: 2px solid #667eea; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);">
+                        <h4 style="color: #667eea; margin-bottom: 20px; font-size: 18px;">📡 Broadcast to All Users</h4>
+                        
+                        <div class="form-group">
+                            <label>📝 Title *</label>
+                            <input type="text" id="massTitle" placeholder="e.g., New Features Available!" maxlength="100">
+                            <small style="color: #718096; font-size: 12px;">Maximum 100 characters</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>💬 Message *</label>
+                            <textarea id="massBody" placeholder="e.g., Check out our new story templates and character customization options!" rows="3" maxlength="500"></textarea>
+                            <small style="color: #718096; font-size: 12px;">Maximum 500 characters</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🖼️ Image URL (optional)</label>
+                            <input type="url" id="massImageUrl" placeholder="https://example.com/notification-image.jpg">
+                            <small style="color: #718096; font-size: 12px;">Direct link to notification image (JPG, PNG, GIF)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🎯 Action Type (optional)</label>
+                            <select id="massActionType">
+                                <option value="">No Action</option>
+                                <option value="open_screen">Open Screen</option>
+                                <option value="open_story">Open Story</option>
+                                <option value="open_url">Open URL</option>
+                                <option value="open_profile">Open Profile</option>
+                                <option value="open_library">Open Library</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="massActionValueGroup" style="display: none;">
+                            <label>📍 Action Value</label>
+                            <input type="text" id="massActionValue" placeholder="e.g., story_123, https://example.com, home">
+                            <small style="color: #718096; font-size: 12px;" id="massActionHint">Value depends on action type</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🔔 Priority</label>
+                            <select id="massPriority">
+                                <option value="default">Default</option>
+                                <option value="high">High (shows immediately)</option>
+                                <option value="low">Low (silent)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🎵 Sound</label>
+                            <select id="massSound">
+                                <option value="default">Default Sound</option>
+                                <option value="custom">Custom Sound</option>
+                                <option value="none">No Sound</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="massSoundValueGroup" style="display: none;">
+                            <label>Sound Name</label>
+                            <input type="text" id="massSoundValue" placeholder="e.g., notification.wav">
+                        </div>
+
+                        <div class="form-group">
+                            <label>📱 Platform Filter</label>
+                            <select id="massPlatform">
+                                <option value="">All Platforms</option>
+                                <option value="ios">iOS Only</option>
+                                <option value="android">Android Only</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🏷️ Category Tag (optional)</label>
+                            <input type="text" id="massCategory" placeholder="e.g., update, promotion, announcement">
+                            <small style="color: #718096; font-size: 12px;">Used for grouping notifications</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>⏰ Badge Count (optional)</label>
+                            <input type="number" id="massBadge" placeholder="0" min="0" max="99">
+                            <small style="color: #718096; font-size: 12px;">iOS app icon badge number</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🔗 Additional Data (JSON, optional)</label>
+                            <textarea id="massCustomData" placeholder='{"key": "value", "additional": "data"}' rows="3"></textarea>
+                            <small style="color: #718096; font-size: 12px;">Extra metadata in JSON format</small>
+                        </div>
+
+                        <div style="background: #fef3c7; padding: 12px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #f59e0b;">
+                            <strong>⚠️ Preview:</strong>
+                            <div id="massPreview" style="margin-top: 8px; color: #92400e; font-size: 14px;">
+                                Fill in title and message to see preview
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary" onclick="sendMassNotification()" style="width: 100%; font-size: 16px; padding: 14px;">
+                            📡 Send to All Users
+                        </button>
+                    </div>
+
+                    <!-- Individual Notification -->
+                    <div style="background: white; padding: 25px; border-radius: 12px; border: 2px solid #48bb78; box-shadow: 0 2px 8px rgba(72, 187, 120, 0.1);">
+                        <h4 style="color: #48bb78; margin-bottom: 20px; font-size: 18px;">🎯 Send to Specific User</h4>
+                        
+                        <div class="form-group">
+                            <label>👤 User ID *</label>
+                            <input type="text" id="notifUserId" placeholder="Enter Firebase user ID...">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>📝 Title *</label>
+                            <input type="text" id="notifTitle" placeholder="e.g., Your Story is Ready!" maxlength="100">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>💬 Message *</label>
+                            <textarea id="notifBody" placeholder="e.g., Your custom story has been generated and is ready to view!" rows="3" maxlength="500"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🖼️ Image URL (optional)</label>
+                            <input type="url" id="notifImageUrl" placeholder="https://example.com/story-thumbnail.jpg">
+                        </div>
+
+                        <div class="form-group">
+                            <label>🎯 Action Type (optional)</label>
+                            <select id="notifActionType">
+                                <option value="">No Action</option>
+                                <option value="open_screen">Open Screen</option>
+                                <option value="open_story">Open Story</option>
+                                <option value="open_url">Open URL</option>
+                                <option value="open_profile">Open Profile</option>
+                                <option value="open_library">Open Library</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="notifActionValueGroup" style="display: none;">
+                            <label>📍 Action Value</label>
+                            <input type="text" id="notifActionValue" placeholder="e.g., story_123">
+                            <small style="color: #718096; font-size: 12px;" id="notifActionHint">Value depends on action type</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🔔 Priority</label>
+                            <select id="notifPriority">
+                                <option value="default">Default</option>
+                                <option value="high">High (shows immediately)</option>
+                                <option value="low">Low (silent)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>🏷️ Category (optional)</label>
+                            <input type="text" id="notifCategory" placeholder="e.g., story, account, update">
+                        </div>
+
+                        <div class="form-group">
+                            <label>⏰ Badge Count (optional)</label>
+                            <input type="number" id="notifBadge" placeholder="0" min="0" max="99">
+                        </div>
+
+                        <div class="form-group">
+                            <label>🔗 Additional Data (JSON, optional)</label>
+                            <textarea id="notifCustomData" placeholder='{"story_id": "story_123", "custom_field": "value"}' rows="3"></textarea>
+                        </div>
+
+                        <div style="background: #dbeafe; padding: 12px; border-radius: 6px; margin: 15px 0; border-left: 4px solid #3b82f6;">
+                            <strong>💡 Preview:</strong>
+                            <div id="notifPreview" style="margin-top: 8px; color: #1e40af; font-size: 14px;">
+                                Fill in fields to see preview
+                            </div>
+                        </div>
+
+                        <button class="btn btn-success" onclick="sendIndividualNotification()" style="width: 100%; font-size: 16px; padding: 14px;">
+                            🔔 Send to User
+                        </button>
+                    </div>
+
+                    <!-- Quick Templates -->
+                    <div style="background: #f7fafc; padding: 20px; border-radius: 12px; margin-top: 25px; border: 2px solid #e2e8f0;">
+                        <h4 style="color: #2d3748; margin-bottom: 15px;">⚡ Quick Templates</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                            <button class="btn btn-secondary" onclick="applyTemplate('new_feature')" style="font-size: 14px;">✨ New Feature</button>
+                            <button class="btn btn-secondary" onclick="applyTemplate('story_ready')" style="font-size: 14px;">📖 Story Ready</button>
+                            <button class="btn btn-secondary" onclick="applyTemplate('subscription')" style="font-size: 14px;">💎 Subscription</button>
+                            <button class="btn btn-secondary" onclick="applyTemplate('reminder')" style="font-size: 14px;">⏰ Reminder</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="markPaidModal" class="modal">
+        <div class="modal-content">
+            <h2>💳 Mark User as Paid</h2>
+            <div class="form-group">
+                <label>User ID</label>
+                <input type="text" id="paidUserId" readonly>
+            </div>
+            <div class="form-group">
+                <label>Subscription Duration (months)</label>
+                <input type="number" id="paidMonths" value="1" min="1" max="12">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('markPaidModal')">Cancel</button>
+                <button class="btn btn-success" onclick="confirmMarkAsPaid()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="disableModal" class="modal">
+        <div class="modal-content">
+            <h2>🚫 Disable User Account</h2>
+            <div class="form-group">
+                <label>User ID</label>
+                <input type="text" id="disableUserId" readonly>
+            </div>
+            <div class="form-group">
+                <label>Reason for Disabling</label>
+                <textarea id="disableReason" placeholder="e.g., Policy violation, Spam, Abuse..." required></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('disableModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDisable()">Disable Account</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="extendModal" class="modal">
+        <div class="modal-content">
+            <h2>⏰ Extend Subscription</h2>
+            <div class="form-group">
+                <label>User ID</label>
+                <input type="text" id="extendUserId" readonly>
+            </div>
+            <div class="form-group">
+                <label>Days to Extend</label>
+                <input type="number" id="extendDays" value="7" min="1" max="365">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModal('extendModal')">Cancel</button>
+                <button class="btn btn-warning" onclick="confirmExtend()">Extend</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const AUTH_HEADER = 'Basic ' + btoa('root:root');
+        let allUsers = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAnalytics();
+            loadStats();
+            loadUsers();
+        });
+
+        // API Helper
+        async function apiCall(endpoint, options = {}) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        'Authorization': AUTH_HEADER,
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'API call failed');
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+
+        // Load Stats
+        async function loadStats() {
+            try {
+                const stats = await apiCall('/admin/stats');
+                renderStats(stats.stats);
+            } catch (error) {
+                showAlert('Failed to load stats: ' + error.message, 'error');
+            }
+        }
+
+        // Load Analytics
+        async function loadAnalytics() {
+            try {
+                const response = await apiCall('/admin/stats');
+                const stats = response.stats;
+                
+                // Calculate analytics from stats
+                const totalUsers = stats.total_users || 0;
+                const paidUsers = stats.by_status?.active_paid || 0;
+                const trialUsers = stats.by_status?.trial_active || 0;
+                const cancelledUsers = stats.by_status?.cancelled || 0;
+                const activeUsers = paidUsers + trialUsers;
+                
+                // MRR calculation (assuming $10/month per paid user)
+                const mrr = paidUsers * 10;
+                const arr = mrr * 12;
+                
+                // Conversion rates
+                const paidConversion = totalUsers > 0 ? ((paidUsers / totalUsers) * 100).toFixed(1) : 0;
+                const trialTotal = trialUsers + cancelledUsers + (stats.by_status?.trial_expired || 0);
+                const trialConversion = (paidUsers + trialTotal) > 0 ? 
+                    ((paidUsers / (paidUsers + trialTotal)) * 100).toFixed(1) : 0;
+                
+                // Retention and churn
+                const retention = totalUsers > 0 ? ((activeUsers / totalUsers) * 100).toFixed(1) : 0;
+                const churn = totalUsers > 0 ? ((cancelledUsers / totalUsers) * 100).toFixed(1) : 0;
+                
+                // Update analytics UI
+                document.getElementById('mrrValue').textContent = `$${mrr.toLocaleString()}`;
+                document.getElementById('arrValue').textContent = arr.toLocaleString();
+                document.getElementById('paidConversionValue').textContent = `${paidConversion}%`;
+                document.getElementById('trialConversionValue').textContent = `${trialConversion}%`;
+                document.getElementById('activeUsersValue').textContent = activeUsers;
+                document.getElementById('retentionValue').textContent = `${retention}%`;
+                document.getElementById('churnValue').textContent = `${churn}%`;
+                document.getElementById('cancelledValue').textContent = cancelledUsers;
+                
+                // For now, set growth metrics to 0 (would need historical data)
+                document.getElementById('weeklyNewValue').textContent = '0';
+                document.getElementById('todayNewValue').textContent = '0';
+                document.getElementById('monthlyNewValue').textContent = '0';
+                
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+                showAlert('Failed to load analytics: ' + error.message, 'error');
+            }
+        }
+
+        // Render Stats
+        function renderStats(stats) {
+            const grid = document.getElementById('statsGrid');
+            grid.innerHTML = `
+                <div class="stat-card">
+                    <div class="label">Total Users</div>
+                    <div class="value">${stats.total_users}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Trial Active</div>
+                    <div class="value" style="color: #3182ce;">${stats.by_status.trial_active}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Active Paid</div>
+                    <div class="value" style="color: #38a169;">${stats.by_status.active_paid}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Grace Period</div>
+                    <div class="value" style="color: #d69e2e;">${stats.by_status.grace_period}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Trial Expired</div>
+                    <div class="value" style="color: #e53e3e;">${stats.by_status.trial_expired}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Cancelled</div>
+                    <div class="value" style="color: #718096;">${stats.by_status.cancelled}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="label">Disabled</div>
+                    <div class="value" style="color: #c53030;">${stats.by_status.disabled_by_admin}</div>
+                </div>
+            `;
+        }
+
+        // Load Users
+        async function loadUsers() {
+            try {
+                const data = await apiCall('/admin/users?limit=100');
+                allUsers = data.users;
+                renderUsers(allUsers);
+            } catch (error) {
+                document.getElementById('userList').innerHTML = `
+                    <div class="loading">
+                        <p style="color: #e53e3e;">❌ Failed to load users: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Render Users
+        function renderUsers(users) {
+            const list = document.getElementById('userList');
+            
+            if (users.length === 0) {
+                list.innerHTML = '<div class="loading"><p>No users found</p></div>';
+                return;
+            }
+
+            list.innerHTML = users.map(user => {
+                const status = user.account_status?.status || 'unknown';
+                const canCreate = user.account_status?.can_create_stories ? '✅' : '❌';
+                
+                return `
+                    <div class="user-card">
+                        <div class="user-id">🆔 ${user.user_id}</div>
+                        <div class="email">📧 ${user.email}</div>
+                        <span class="status ${status}">${status.replace('_', ' ').toUpperCase()}</span>
+                        <span style="margin-left: 10px;">Can Create: ${canCreate}</span>
+                        <div class="actions">
+                            <button class="btn btn-success" onclick="openMarkAsPaid('${user.user_id}')">💳 Mark as Paid</button>
+                            <button class="btn btn-warning" onclick="openExtend('${user.user_id}')">⏰ Extend</button>
+                            <button class="btn btn-primary" onclick="resetTrial('${user.user_id}')">🔄 Reset Trial</button>
+                            ${status !== 'disabled_by_admin' 
+                                ? `<button class="btn btn-danger" onclick="openDisable('${user.user_id}')">🚫 Disable</button>`
+                                : `<button class="btn btn-success" onclick="enableAccount('${user.user_id}')">✅ Enable</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Filter Users
+        function filterUsers() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allUsers.filter(user => 
+                user.user_id.toLowerCase().includes(search) || 
+                user.email.toLowerCase().includes(search)
+            );
+            renderUsers(filtered);
+        }
+
+        // Refresh Users
+        async function refreshUsers() {
+            document.getElementById('userList').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading users...</p>
+                </div>
+            `;
+            await loadAnalytics();
+            await loadUsers();
+            await loadStats();
+            showAlert('✅ Data refreshed successfully', 'success');
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tab}-tab`).classList.add('active');
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function openMarkAsPaid(userId) {
+            document.getElementById('paidUserId').value = userId;
+            openModal('markPaidModal');
+        }
+
+        function openDisable(userId) {
+            document.getElementById('disableUserId').value = userId;
+            document.getElementById('disableReason').value = '';
+            openModal('disableModal');
+        }
+
+        function openExtend(userId) {
+            document.getElementById('extendUserId').value = userId;
+            openModal('extendModal');
+        }
+
+        // Confirm Actions
+        async function confirmMarkAsPaid() {
+            const userId = document.getElementById('paidUserId').value;
+            const months = parseInt(document.getElementById('paidMonths').value);
+            
+            try {
+                await apiCall(`/admin/users/${userId}/mark-paid`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, subscription_months: months })
+                });
+                
+                showAlert(`✅ User ${userId} marked as paid for ${months} month(s)`, 'success');
+                closeModal('markPaidModal');
+                await refreshUsers();
+            } catch (error) {
+                showAlert('❌ Failed to mark as paid: ' + error.message, 'error');
+            }
+        }
+
+        async function confirmDisable() {
+            const userId = document.getElementById('disableUserId').value;
+            const reason = document.getElementById('disableReason').value;
+            
+            console.log('confirmDisable called', { userId, reason, reasonLength: reason.length, reasonTrimmed: reason.trim() });
+            
+            if (!reason || !reason.trim()) {
+                console.log('Validation failed: empty reason, showing alert');
+                showAlert('❌ Please provide a reason for disabling', 'error');
+                console.log('Alert shown, returning');
+                return;
+            }
+            
+            console.log('Validation passed, preparing API call');
+            
+            try {
+                console.log('Sending disable request to:', `/admin/users/${userId}/disable`);
+                console.log('Request body:', { user_id: userId, reason });
+                
+                const response = await apiCall(`/admin/users/${userId}/disable`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, reason })
+                });
+                
+                console.log('Disable response received:', response);
+                
+                showAlert(`✅ User ${userId} has been disabled`, 'success');
+                closeModal('disableModal');
+                await refreshUsers();
+            } catch (error) {
+                console.error('Disable error:', error);
+                showAlert('❌ Failed to disable account: ' + error.message, 'error');
+            }
+        }
+
+        async function confirmExtend() {
+            const userId = document.getElementById('extendUserId').value;
+            const days = parseInt(document.getElementById('extendDays').value);
+            
+            try {
+                await apiCall(`/admin/users/${userId}/extend-subscription`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, days })
+                });
+                
+                showAlert(`✅ Subscription extended by ${days} days`, 'success');
+                closeModal('extendModal');
+                await refreshUsers();
+            } catch (error) {
+                showAlert('❌ Failed to extend subscription: ' + error.message, 'error');
+            }
+        }
+
+        // Direct Actions
+        async function enableAccount(userId) {
+            if (!confirm(`Enable account for ${userId}?`)) return;
+            
+            try {
+                await apiCall(`/admin/users/${userId}/enable`, { method: 'POST' });
+                showAlert(`✅ User ${userId} has been enabled`, 'success');
+                await refreshUsers();
+            } catch (error) {
+                showAlert('❌ Failed to enable account: ' + error.message, 'error');
+            }
+        }
+
+        async function resetTrial(userId) {
+            if (!confirm(`Reset trial for ${userId}?`)) return;
+            
+            try {
+                await apiCall(`/admin/users/${userId}/reset-trial`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, trial_days: 14 })
+                });
+                showAlert(`✅ Trial reset for ${userId}`, 'success');
+                await refreshUsers();
+            } catch (error) {
+                showAlert('❌ Failed to reset trial: ' + error.message, 'error');
+            }
+        }
+
+        // Quick Actions
+        async function quickMarkAsPaid() {
+            const userId = document.getElementById('quickUserId').value.trim();
+            if (!userId) {
+                showAlert('❌ Please enter a user ID', 'error');
+                return;
+            }
+            
+            try {
+                await apiCall(`/admin/users/${userId}/mark-paid`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, subscription_months: 1 })
+                });
+                showAlert(`✅ User ${userId} marked as paid`, 'success');
+                document.getElementById('quickUserId').value = '';
+                await refreshUsers();
+            } catch (error) {
+                showAlert('❌ ' + error.message, 'error');
+            }
+        }
+
+        async function quickExtendSubscription() {
+            const userId = document.getElementById('quickUserId').value.trim();
+            if (!userId) {
+                showAlert('❌ Please enter a user ID', 'error');
+                return;
+            }
+            
+            try {
+                await apiCall(`/admin/users/${userId}/extend-subscription`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, days: 7 })
+                });
+                showAlert(`✅ Subscription extended for ${userId}`, 'success');
+                document.getElementById('quickUserId').value = '';
+                await refreshUsers();
+            } catch (error) {
+                showAlert('❌ ' + error.message, 'error');
+            }
+        }
+
+        async function quickResetTrial() {
+            const userId = document.getElementById('quickUserId').value.trim();
+            if (!userId) {
+                showAlert('❌ Please enter a user ID', 'error');
+                return;
+            }
+            
+            try {
+                await apiCall(`/admin/users/${userId}/reset-trial`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, trial_days: 14 })
+                });
+                showAlert(`✅ Trial reset for ${userId}`, 'success');
+                document.getElementById('quickUserId').value = '';
+                await refreshUsers();
+            } catch (error) {
+                showAlert('❌ ' + error.message, 'error');
+            }
+        }
+
+        async function quickDisableAccount() {
+            const userId = document.getElementById('quickUserId').value.trim();
+            if (!userId) {
+                showAlert('❌ Please enter a user ID', 'error');
+                return;
+            }
+            
+            const reason = prompt('Enter reason for disabling:');
+            if (!reason) return;
+            
+            try {
+                await apiCall(`/admin/users/${userId}/disable`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, reason })
+                });
+                showAlert(`✅ User ${userId} disabled`, 'success');
+                document.getElementById('quickUserId').value = '';
+                await refreshUsers();
+            } catch (error) {
+                showAlert('❌ ' + error.message, 'error');
+            }
+        }
+
+        async function quickEnableAccount() {
+            const userId = document.getElementById('quickUserId').value.trim();
+            if (!userId) {
+                showAlert('❌ Please enter a user ID', 'error');
+                return;
+            }
+            
+            try {
+                await apiCall(`/admin/users/${userId}/enable`, { method: 'POST' });
+                showAlert(`✅ User ${userId} enabled`, 'success');
+                document.getElementById('quickUserId').value = '';
+                await refreshUsers();
+            } catch (error) {
+                showAlert('❌ ' + error.message, 'error');
+            }
+        }
+
+        async function quickCancelSubscription() {
+            const userId = document.getElementById('quickUserId').value.trim();
+            if (!userId) {
+                showAlert('❌ Please enter a user ID', 'error');
+                return;
+            }
+            
+            if (!confirm(`Cancel subscription for ${userId}?`)) return;
+            
+            try {
+                await apiCall(`/admin/users/${userId}/cancel-subscription`, { method: 'POST' });
+                showAlert(`✅ Subscription cancelled for ${userId}`, 'success');
+                document.getElementById('quickUserId').value = '';
+                await refreshUsers();
+            } catch (error) {
+                showAlert('❌ ' + error.message, 'error');
+            }
+        }
+
+        // Bulk Operations
+        function getBulkUserIds() {
+            const text = document.getElementById('bulkUserIds').value;
+            return text.split('\n').map(id => id.trim()).filter(id => id.length > 0);
+        }
+
+        async function bulkMarkAsPaid() {
+            const userIds = getBulkUserIds();
+            if (userIds.length === 0) {
+                showAlert('❌ Please enter user IDs', 'error');
+                return;
+            }
+            
+            if (!confirm(`Mark ${userIds.length} users as paid?`)) return;
+            
+            let success = 0;
+            let failed = 0;
+            
+            for (const userId of userIds) {
+                try {
+                    await apiCall(`/admin/users/${userId}/mark-paid`, {
+                        method: 'POST',
+                        body: JSON.stringify({ user_id: userId, subscription_months: 1 })
+                    });
+                    success++;
+                } catch (error) {
+                    console.error(`Failed for ${userId}:`, error);
+                    failed++;
+                }
+            }
+            
+            showAlert(`✅ Bulk operation complete: ${success} success, ${failed} failed`, 'success');
+            await refreshUsers();
+        }
+
+        async function bulkExtend() {
+            const userIds = getBulkUserIds();
+            if (userIds.length === 0) {
+                showAlert('❌ Please enter user IDs', 'error');
+                return;
+            }
+            
+            if (!confirm(`Extend subscription for ${userIds.length} users by 7 days?`)) return;
+            
+            let success = 0;
+            let failed = 0;
+            
+            for (const userId of userIds) {
+                try {
+                    await apiCall(`/admin/users/${userId}/extend-subscription`, {
+                        method: 'POST',
+                        body: JSON.stringify({ user_id: userId, days: 7 })
+                    });
+                    success++;
+                } catch (error) {
+                    console.error(`Failed for ${userId}:`, error);
+                    failed++;
+                }
+            }
+            
+            showAlert(`✅ Bulk operation complete: ${success} success, ${failed} failed`, 'success');
+            await refreshUsers();
+        }
+
+        async function bulkDisable() {
+            const userIds = getBulkUserIds();
+            if (userIds.length === 0) {
+                showAlert('❌ Please enter user IDs', 'error');
+                return;
+            }
+            
+            const reason = prompt('Enter reason for bulk disable:');
+            if (!reason) return;
+            
+            if (!confirm(`Disable ${userIds.length} users?`)) return;
+            
+            let success = 0;
+            let failed = 0;
+            
+            for (const userId of userIds) {
+                try {
+                    await apiCall(`/admin/users/${userId}/disable`, {
+                        method: 'POST',
+                        body: JSON.stringify({ user_id: userId, reason })
+                    });
+                    success++;
+                } catch (error) {
+                    console.error(`Failed for ${userId}:`, error);
+                    failed++;
+                }
+            }
+            
+            showAlert(`✅ Bulk operation complete: ${success} success, ${failed} failed`, 'success');
+            await refreshUsers();
+        }
+
+        // Alert
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type} active`;
+            alert.textContent = message;
+            
+            setTimeout(() => {
+                alert.classList.remove('active');
+            }, 5000);
+        }
+
+        // Notification event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setup action type listeners
+            document.getElementById('massActionType').addEventListener('change', function() {
+                updateActionFields('mass', this.value);
+            });
+            document.getElementById('notifActionType').addEventListener('change', function() {
+                updateActionFields('notif', this.value);
+            });
+            
+            // Setup sound listeners
+            document.getElementById('massSound').addEventListener('change', function() {
+                document.getElementById('massSoundValueGroup').style.display = 
+                    this.value === 'custom' ? 'block' : 'none';
+            });
+            
+            // Setup preview listeners
+            ['massTitle', 'massBody', 'massImageUrl'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateMassPreview);
+            });
+            ['notifTitle', 'notifBody', 'notifUserId'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateNotifPreview);
+            });
+        });
+        
+        function updateActionFields(prefix, actionType) {
+            const valueGroup = document.getElementById(prefix + 'ActionValueGroup');
+            const valueInput = document.getElementById(prefix + 'ActionValue');
+            const hint = document.getElementById(prefix + 'ActionHint');
+            
+            if (!actionType) {
+                valueGroup.style.display = 'none';
+                return;
+            }
+            
+            valueGroup.style.display = 'block';
+            
+            // Update placeholder and hint based on action type
+            const hints = {
+                'open_screen': 'Screen name (e.g., home, library, settings)',
+                'open_story': 'Story ID (e.g., story_123abc)',
+                'open_url': 'Full URL (e.g., https://example.com)',
+                'open_profile': 'User ID or "self" for current user',
+                'open_library': 'Leave empty or filter type (e.g., favorites)'
+            };
+            
+            const placeholders = {
+                'open_screen': 'home',
+                'open_story': 'story_123',
+                'open_url': 'https://example.com',
+                'open_profile': 'self',
+                'open_library': 'all'
+            };
+            
+            hint.textContent = hints[actionType] || 'Enter action value';
+            valueInput.placeholder = placeholders[actionType] || '';
+        }
+        
+        function updateMassPreview() {
+            const title = document.getElementById('massTitle').value.trim();
+            const body = document.getElementById('massBody').value.trim();
+            const imageUrl = document.getElementById('massImageUrl').value.trim();
+            const preview = document.getElementById('massPreview');
+            
+            if (!title && !body) {
+                preview.innerHTML = 'Fill in title and message to see preview';
+                return;
+            }
+            
+            let html = '';
+            if (imageUrl) html += `<div style="margin-bottom: 8px;">🖼️ Image: ${imageUrl.substring(0, 50)}${imageUrl.length > 50 ? '...' : ''}</div>`;
+            if (title) html += `<strong>${title}</strong><br>`;
+            if (body) html += body;
+            
+            preview.innerHTML = html || 'Fill in title and message to see preview';
+        }
+        
+        function updateNotifPreview() {
+            const userId = document.getElementById('notifUserId').value.trim();
+            const title = document.getElementById('notifTitle').value.trim();
+            const body = document.getElementById('notifBody').value.trim();
+            const preview = document.getElementById('notifPreview');
+            
+            if (!title && !body && !userId) {
+                preview.innerHTML = 'Fill in fields to see preview';
+                return;
+            }
+            
+            let html = '';
+            if (userId) html += `<div style="margin-bottom: 8px;">👤 To: ${userId}</div>`;
+            if (title) html += `<strong>${title}</strong><br>`;
+            if (body) html += body;
+            
+            preview.innerHTML = html || 'Fill in fields to see preview';
+        }
+        
+        function applyTemplate(templateName) {
+            const templates = {
+                'new_feature': {
+                    title: '✨ New Features Available!',
+                    body: 'Check out our latest updates and improvements to create even better stories.',
+                    actionType: 'open_screen',
+                    actionValue: 'home',
+                    priority: 'high'
+                },
+                'story_ready': {
+                    title: '📖 Your Story is Ready!',
+                    body: 'Your personalized story has been created. Tap to view it now!',
+                    actionType: 'open_library',
+                    actionValue: 'recent',
+                    priority: 'high',
+                    individual: true
+                },
+                'subscription': {
+                    title: '💎 Unlock Premium Features',
+                    body: 'Get unlimited stories, exclusive characters, and more with premium!',
+                    actionType: 'open_screen',
+                    actionValue: 'subscription',
+                    priority: 'default'
+                },
+                'reminder': {
+                    title: '⏰ Time for a New Story!',
+                    body: "It's been a while since your last story. Create one today!",
+                    actionType: 'open_screen',
+                    actionValue: 'create',
+                    priority: 'default'
+                }
+            };
+            
+            const template = templates[templateName];
+            if (!template) return;
+            
+            const prefix = template.individual ? 'notif' : 'mass';
+            document.getElementById(prefix + 'Title').value = template.title;
+            document.getElementById(prefix + 'Body').value = template.body;
+            document.getElementById(prefix + 'ActionType').value = template.actionType || '';
+            document.getElementById(prefix + 'Priority').value = template.priority || 'default';
+            
+            if (template.actionType) {
+                updateActionFields(prefix, template.actionType);
+                if (template.actionValue) {
+                    document.getElementById(prefix + 'ActionValue').value = template.actionValue;
+                }
+            }
+            
+            if (prefix === 'mass') {
+                updateMassPreview();
+            } else {
+                updateNotifPreview();
+            }
+            
+            showAlert(`✅ Applied "${templateName}" template`, 'success');
+        }
+        
+        async function sendMassNotification() {
+            const title = document.getElementById('massTitle').value.trim();
+            const body = document.getElementById('massBody').value.trim();
+            const imageUrl = document.getElementById('massImageUrl').value.trim();
+            const actionType = document.getElementById('massActionType').value;
+            const actionValue = document.getElementById('massActionValue').value.trim();
+            const priority = document.getElementById('massPriority').value;
+            const sound = document.getElementById('massSound').value;
+            const soundValue = document.getElementById('massSoundValue').value.trim();
+            const platform = document.getElementById('massPlatform').value;
+            const category = document.getElementById('massCategory').value.trim();
+            const badge = document.getElementById('massBadge').value;
+            const customDataText = document.getElementById('massCustomData').value.trim();
+            
+            if (!title || !body) {
+                showAlert('❌ Please provide both title and message', 'error');
+                return;
+            }
+            
+            // Build custom data object
+            let customData = {};
+            
+            // Parse additional custom data
+            if (customDataText) {
+                try {
+                    customData = JSON.parse(customDataText);
+                } catch (e) {
+                    showAlert('❌ Invalid JSON in additional data field', 'error');
+                    return;
+                }
+            }
+            
+            // Add structured fields to data
+            if (imageUrl) customData.image = imageUrl;
+            if (actionType) {
+                customData.action = actionType;
+                if (actionValue) customData.action_value = actionValue;
+            }
+            if (priority && priority !== 'default') customData.priority = priority;
+            if (sound === 'custom' && soundValue) customData.sound = soundValue;
+            else if (sound === 'none') customData.sound = null;
+            if (category) customData.category = category;
+            if (badge) customData.badge = parseInt(badge);
+            
+            // Confirm before sending
+            const confirmMsg = `Send notification to ALL users?\n\n📝 Title: ${title}\n💬 Message: ${body}\n${imageUrl ? '🖼️ Image: Yes\n' : ''}${actionType ? `🎯 Action: ${actionType}\n` : ''}`;
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+            
+            try {
+                // Build request
+                const request = {
+                    title: title,
+                    body: body,
+                    data: Object.keys(customData).length > 0 ? customData : null,
+                    filter: {
+                        all_users: true,
+                        platforms: platform ? [platform] : null
+                    }
+                };
+                
+                const response = await apiCall('/notifications/send-mass', {
+                    method: 'POST',
+                    body: JSON.stringify(request)
+                });
+                
+                showAlert(`✅ ${response.message}`, 'success');
+                
+                // Clear form
+                document.getElementById('massTitle').value = '';
+                document.getElementById('massBody').value = '';
+                document.getElementById('massImageUrl').value = '';
+                document.getElementById('massActionType').value = '';
+                document.getElementById('massActionValue').value = '';
+                document.getElementById('massPriority').value = 'default';
+                document.getElementById('massSound').value = 'default';
+                document.getElementById('massSoundValue').value = '';
+                document.getElementById('massPlatform').value = '';
+                document.getElementById('massCategory').value = '';
+                document.getElementById('massBadge').value = '';
+                document.getElementById('massCustomData').value = '';
+                document.getElementById('massActionValueGroup').style.display = 'none';
+                document.getElementById('massSoundValueGroup').style.display = 'none';
+                updateMassPreview();
+                
+            } catch (error) {
+                showAlert('❌ Failed to send notification: ' + error.message, 'error');
+            }
+        }
+
+        async function sendIndividualNotification() {
+            const userId = document.getElementById('notifUserId').value.trim();
+            const title = document.getElementById('notifTitle').value.trim();
+            const body = document.getElementById('notifBody').value.trim();
+            const imageUrl = document.getElementById('notifImageUrl').value.trim();
+            const actionType = document.getElementById('notifActionType').value;
+            const actionValue = document.getElementById('notifActionValue').value.trim();
+            const priority = document.getElementById('notifPriority').value;
+            const category = document.getElementById('notifCategory').value.trim();
+            const badge = document.getElementById('notifBadge').value;
+            const customDataText = document.getElementById('notifCustomData').value.trim();
+            
+            if (!userId || !title || !body) {
+                showAlert('❌ Please provide user ID, title, and message', 'error');
+                return;
+            }
+            
+            // Build custom data object
+            let customData = {};
+            
+            // Parse additional custom data
+            if (customDataText) {
+                try {
+                    customData = JSON.parse(customDataText);
+                } catch (e) {
+                    showAlert('❌ Invalid JSON in additional data field', 'error');
+                    return;
+                }
+            }
+            
+            // Add structured fields to data
+            if (imageUrl) customData.image = imageUrl;
+            if (actionType) {
+                customData.action = actionType;
+                if (actionValue) customData.action_value = actionValue;
+            }
+            if (priority && priority !== 'default') customData.priority = priority;
+            if (category) customData.category = category;
+            if (badge) customData.badge = parseInt(badge);
+            
+            try {
+                // Build request
+                const request = {
+                    user_id: userId,
+                    title: title,
+                    body: body,
+                    data: Object.keys(customData).length > 0 ? customData : null
+                };
+                
+                const response = await apiCall('/notifications/send', {
+                    method: 'POST',
+                    body: JSON.stringify(request)
+                });
+                
+                showAlert(`✅ ${response.message}`, 'success');
+                
+                // Clear form
+                document.getElementById('notifUserId').value = '';
+                document.getElementById('notifTitle').value = '';
+                document.getElementById('notifBody').value = '';
+                document.getElementById('notifImageUrl').value = '';
+                document.getElementById('notifActionType').value = '';
+                document.getElementById('notifActionValue').value = '';
+                document.getElementById('notifPriority').value = 'default';
+                document.getElementById('notifCategory').value = '';
+                document.getElementById('notifBadge').value = '';
+                document.getElementById('notifCustomData').value = '';
+                document.getElementById('notifActionValueGroup').style.display = 'none';
+                updateNotifPreview();
+                
+            } catch (error) {
+                showAlert('❌ Failed to send notification: ' + error.message, 'error');
+            }
+        }
+
+        // Close modal on outside click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

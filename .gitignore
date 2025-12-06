@@ -1,0 +1,43 @@
+.env
+\lambda-deployment
+firebase-credentials.json
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+.git/*.env
+myenv
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+lambda-deployment\lambda-package.zip
+Thumbs.db
+
+# Development and test files
+debug_*.py
+test_*.py
+*_test.py
+calculate_*.py
+add_*.py
+token/
+*.db
+*.txt
+*.log
+example.*
+*_results.json
+minio.py
+mock_*.json
+generate_*.py
+
+# Temporary and development files
+firebase_id_token.txt
+server.log
+iot_devices.db

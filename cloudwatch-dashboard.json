@@ -1,0 +1,361 @@
+{
+  "widgets": [
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/SQS", "NumberOfMessagesSent", "QueueName", "story-generation-queue"],
+          [".", "NumberOfMessagesReceived", ".", "."],
+          [".", "NumberOfMessagesDeleted", ".", "."]
+        ],
+        "period": 300,
+        "stat": "Sum",
+        "region": "us-east-1",
+        "title": "SQS Queue Messages (Sent/Received/Deleted)",
+        "yAxis": {
+          "left": {
+            "label": "Message Count",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/SQS", "ApproximateNumberOfMessagesVisible", "QueueName", "story-generation-queue", { "stat": "Average", "label": "Visible Messages" }],
+          ["...", "ApproximateNumberOfMessagesNotVisible", { "stat": "Average", "label": "In-Flight Messages" }],
+          ["...", "ApproximateNumberOfMessagesDelayed", { "stat": "Average", "label": "Delayed Messages" }]
+        ],
+        "period": 60,
+        "stat": "Average",
+        "region": "us-east-1",
+        "title": "SQS Queue Depth (Current Messages)",
+        "yAxis": {
+          "left": {
+            "label": "Message Count",
+            "showUnits": false
+          }
+        },
+        "annotations": {
+          "horizontal": [
+            {
+              "value": 10,
+              "label": "Warning Threshold",
+              "color": "#ff9900"
+            },
+            {
+              "value": 50,
+              "label": "Critical Threshold",
+              "color": "#ff0000"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/Lambda", "Invocations", "FunctionName", "story-generation-worker"],
+          [".", "Errors", ".", "."],
+          [".", "Throttles", ".", "."]
+        ],
+        "period": 300,
+        "stat": "Sum",
+        "region": "us-east-1",
+        "title": "Lambda Function Invocations",
+        "yAxis": {
+          "left": {
+            "label": "Count",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/Lambda", "Duration", "FunctionName", "story-generation-worker", { "stat": "Average", "label": "Average Duration" }],
+          ["...", { "stat": "Minimum", "label": "Min Duration" }],
+          ["...", { "stat": "Maximum", "label": "Max Duration" }],
+          ["...", { "stat": "p99", "label": "P99 Duration" }]
+        ],
+        "period": 300,
+        "stat": "Average",
+        "region": "us-east-1",
+        "title": "Lambda Execution Duration (ms)",
+        "yAxis": {
+          "left": {
+            "label": "Duration (ms)",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/Lambda", "ConcurrentExecutions", "FunctionName", "story-generation-worker"]
+        ],
+        "period": 60,
+        "stat": "Maximum",
+        "region": "us-east-1",
+        "title": "Lambda Concurrent Executions",
+        "yAxis": {
+          "left": {
+            "label": "Concurrent Executions",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/Lambda", "ErrorRate", "FunctionName", "story-generation-worker"],
+          [".", "ThrottleRate", ".", "."]
+        ],
+        "period": 300,
+        "stat": "Average",
+        "region": "us-east-1",
+        "title": "Lambda Error & Throttle Rates",
+        "yAxis": {
+          "left": {
+            "label": "Rate (%)",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/SQS", "ApproximateAgeOfOldestMessage", "QueueName", "story-generation-queue"]
+        ],
+        "period": 60,
+        "stat": "Maximum",
+        "region": "us-east-1",
+        "title": "SQS Oldest Message Age (seconds)",
+        "yAxis": {
+          "left": {
+            "label": "Age (seconds)",
+            "showUnits": false
+          }
+        },
+        "annotations": {
+          "horizontal": [
+            {
+              "value": 300,
+              "label": "5 min Warning",
+              "color": "#ff9900"
+            },
+            {
+              "value": 600,
+              "label": "10 min Critical",
+              "color": "#ff0000"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/SQS", "SentMessageSize", "QueueName", "story-generation-queue", { "stat": "Average", "label": "Average" }],
+          ["...", { "stat": "Maximum", "label": "Maximum" }]
+        ],
+        "period": 300,
+        "stat": "Average",
+        "region": "us-east-1",
+        "title": "SQS Message Size (bytes)",
+        "yAxis": {
+          "left": {
+            "label": "Size (bytes)",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/SQS", "NumberOfEmptyReceives", "QueueName", "story-generation-queue"],
+          [".", "NumberOfMessagesReceived", ".", "."]
+        ],
+        "period": 300,
+        "stat": "Sum",
+        "region": "us-east-1",
+        "title": "SQS Empty Receives vs Messages Received",
+        "yAxis": {
+          "left": {
+            "label": "Count",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/SQS", "NumberOfMessagesSent", "QueueName", "story-generation-queue", { "period": 300, "stat": "Sum", "label": "Messages Sent (5min)" }],
+          ["...", { "period": 3600, "stat": "Sum", "label": "Messages Sent (1hr)" }]
+        ],
+        "period": 300,
+        "stat": "Sum",
+        "region": "us-east-1",
+        "title": "SQS Message Throughput",
+        "yAxis": {
+          "left": {
+            "label": "Message Count",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "metric",
+      "properties": {
+        "metrics": [
+          ["AWS/Lambda", "Invocations", "FunctionName", "story-generation-worker", { "period": 300, "stat": "Sum", "label": "Invocations (5min)" }],
+          ["...", { "period": 3600, "stat": "Sum", "label": "Invocations (1hr)" }],
+          ["...", { "period": 86400, "stat": "Sum", "label": "Invocations (24hr)" }]
+        ],
+        "period": 300,
+        "stat": "Sum",
+        "region": "us-east-1",
+        "title": "Lambda Invocations Over Time",
+        "yAxis": {
+          "left": {
+            "label": "Count",
+            "showUnits": false
+          }
+        }
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker' | fields @timestamp, @message\n| filter @message like /story_id/\n| stats count() by bin(5m)",
+        "region": "us-east-1",
+        "title": "Story Processing Activity (Count by 5min)",
+        "view": "timeSeries",
+        "stacked": false
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker'\n| fields @timestamp, @message\n| filter @message like /❌/ or @message like /error/i or @message like /Error/ or @message like /ERROR/ or @message like /failed/i or @message like /Failed/\n| sort @timestamp desc\n| limit 50",
+        "region": "us-east-1",
+        "title": "Recent Errors & Failures",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker'\n| fields @timestamp, @message\n| filter @message like /error/i or @message like /Error/ or @message like /ERROR/ or @message like /failed/i or @message like /Failed/\n| stats count() as error_count by bin(5m)\n| sort @timestamp desc",
+        "region": "us-east-1",
+        "title": "Error Rate Over Time",
+        "view": "timeSeries",
+        "stacked": false
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker'\n| fields @timestamp, @message, @requestId\n| filter @message like /Processing job/ or @message like /📝 Processing job/\n| parse @message /job (?<job_id>[a-zA-Z0-9-]+) for story (?<story_id>[a-zA-Z0-9_]+)/\n| stats count() as jobs_started by bin(5m)\n| sort @timestamp desc",
+        "region": "us-east-1",
+        "title": "Jobs Started Over Time",
+        "view": "timeSeries",
+        "stacked": false
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker'\n| fields @timestamp, @message, @requestId\n| filter @message like /✅ Completed job/ or @message like /✅ Story generation completed/\n| parse @message /job (?<job_id>[a-zA-Z0-9-]+)/\n| stats count() as jobs_completed by bin(5m)\n| sort @timestamp desc",
+        "region": "us-east-1",
+        "title": "Jobs Completed Over Time",
+        "view": "timeSeries",
+        "stacked": false
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker'\n| fields @timestamp, @message, @duration, @billedDuration, @memorySize, @maxMemoryUsed\n| filter ispresent(@duration)\n| stats avg(@duration) as avg_duration, max(@duration) as max_duration, min(@duration) as min_duration, pct(@duration, 99) as p99_duration by bin(5m)\n| sort @timestamp desc",
+        "region": "us-east-1",
+        "title": "Lambda Execution Duration from Logs (ms)",
+        "view": "timeSeries",
+        "stacked": false
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker'\n| fields @timestamp, @message\n| filter @message like /🚀 Lambda invoked/ or @message like /Lambda invoked/\n| stats count() as invocations by bin(5m)\n| sort @timestamp desc",
+        "region": "us-east-1",
+        "title": "Lambda Invocations from Logs",
+        "view": "timeSeries",
+        "stacked": false
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker'\n| fields @timestamp, @message, @requestId\n| filter @message like /story_id/ or @message like /job_id/\n| parse @message /story (?<story_id>[a-zA-Z0-9_-]+)/\n| parse @message /job (?<job_id>[a-zA-Z0-9-]+)/\n| stats count() as unique_stories by story_id\n| sort count desc\n| limit 10",
+        "region": "us-east-1",
+        "title": "Top Stories by Processing Count",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker'\n| fields @timestamp, @message\n| filter @message like /🎬 Starting story generation/ or @message like /Starting story generation/\n| parse @message /Starting story generation for (?<story_id>[a-zA-Z0-9_-]+)/\n| stats count() as stories_started, earliest(@timestamp) as first_seen, latest(@timestamp) as last_seen by story_id\n| sort count desc\n| limit 20",
+        "region": "us-east-1",
+        "title": "Recent Story Processing Activity",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker'\n| fields @timestamp, @message\n| filter @message like /📦 Received/ or @message like /Received/\n| parse @message /Received (?<message_count>[0-9]+) message\\(s\\)/\n| stats sum(message_count) as total_messages_received by bin(5m)\n| sort @timestamp desc",
+        "region": "us-east-1",
+        "title": "SQS Messages Received (from Logs)",
+        "view": "timeSeries",
+        "stacked": false
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker'\n| fields @timestamp, @message, @requestId\n| filter @message like /error/ or @message like /Error/ or @message like /ERROR/ or @message like /failed/ or @message like /Failed/\n| parse @message /(?<error_type>[^:]+): (?<error_message>.*)/\n| stats count() as error_count by error_type\n| sort count desc\n| limit 10",
+        "region": "us-east-1",
+        "title": "Error Types Summary",
+        "view": "table"
+      }
+    },
+    {
+      "type": "log",
+      "properties": {
+        "query": "SOURCE '/aws/lambda/story-generation-worker'\n| fields @timestamp, @message\n| sort @timestamp desc\n| limit 100",
+        "region": "us-east-1",
+        "title": "Recent Log Entries (Last 100)",
+        "view": "table"
+      }
+    }
+  ]
+}
+

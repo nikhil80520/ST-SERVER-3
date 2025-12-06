@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversational AI Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-start {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-start:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-stop {
+            background: #ff4757;
+            color: white;
+        }
+        
+        .btn-stop:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .status.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border-left: 4px solid #388e3c;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
+        }
+        
+        .status.active {
+            display: block;
+        }
+        
+        .audio-visualization {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+        
+        .audio-visualization.active {
+            display: block;
+        }
+        
+        .audio-bar {
+            display: inline-block;
+            width: 4px;
+            height: 20px;
+            background: #667eea;
+            margin: 0 2px;
+            border-radius: 2px;
+            animation: wave 1s ease-in-out infinite;
+        }
+        
+        @keyframes wave {
+            0%, 100% { height: 20px; }
+            50% { height: 40px; }
+        }
+        
+        .audio-bar:nth-child(2) { animation-delay: 0.1s; }
+        .audio-bar:nth-child(3) { animation-delay: 0.2s; }
+        .audio-bar:nth-child(4) { animation-delay: 0.3s; }
+        .audio-bar:nth-child(5) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ Conversational AI Test</h1>
+        <p class="subtitle">Test the WebRTC storytelling conversation endpoint</p>
+        
+        <div class="form-group">
+            <label for="sessionToken">Firebase Session Token</label>
+            <input type="text" id="sessionToken" placeholder="Paste your Firebase ID token here">
+            <div class="hint">Get this from your Firebase authentication</div>
+        </div>
+        
+        <div class="form-group">
+            <label for="storyId">Story ID (optional)</label>
+            <input type="text" id="storyId" placeholder="Leave empty for free-form storytelling">
+            <div class="hint">Enter a story ID to have the AI tell that specific story</div>
+        </div>
+        
+        <div class="button-group">
+            <button id="startBtn" class="btn-start" onclick="startConversation()">
+                🎤 Start Conversation
+            </button>
+            <button id="stopBtn" class="btn-stop" onclick="stopConversation()" disabled>
+                ⏹️ Stop
+            </button>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div id="audioViz" class="audio-visualization">
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+            <div class="audio-bar"></div>
+        </div>
+    </div>
+    
+    <script>
+        let peerConnection = null;
+        let localStream = null;
+        
+        function showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type} active`;
+            console.log(`[${type.toUpperCase()}]`, message);
+        }
+        
+        async function startConversation() {
+            const sessionToken = document.getElementById('sessionToken').value.trim();
+            const storyId = document.getElementById('storyId').value.trim() || null;
+            
+            if (!sessionToken) {
+                showStatus('❌ Please enter a session token', 'error');
+                return;
+            }
+            
+            try {
+                // Disable start button, enable stop button
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                
+                showStatus('🎤 Requesting microphone access...', 'info');
+                
+                // Get user media (microphone)
+                localStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+                
+                showStatus('📡 Creating WebRTC connection...', 'info');
+                
+                // Create peer connection
+                peerConnection = new RTCPeerConnection({
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' }
+                    ]
+                });
+                
+                // Add local stream to peer connection
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+                
+                // Handle incoming audio
+                peerConnection.ontrack = (event) => {
+                    console.log('📥 Received remote track:', event.track.kind);
+                    const remoteAudio = new Audio();
+                    remoteAudio.srcObject = event.streams[0];
+                    remoteAudio.play();
+                    
+                    // Show audio visualization
+                    document.getElementById('audioViz').classList.add('active');
+                };
+                
+                // Handle connection state changes
+                peerConnection.onconnectionstatechange = () => {
+                    console.log('Connection state:', peerConnection.connectionState);
+                    if (peerConnection.connectionState === 'connected') {
+                        showStatus('✅ Connected! Start talking...', 'success');
+                    } else if (peerConnection.connectionState === 'failed') {
+                        showStatus('❌ Connection failed', 'error');
+                        stopConversation();
+                    }
+                };
+                
+                // Create offer
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                
+                showStatus('🌐 Connecting to server...', 'info');
+                
+                // Send offer to server
+                const response = await fetch('http://localhost:8000/conversation/api/offer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        session_token: sessionToken,
+                        story_id: storyId,
+                        sdp: offer.sdp,
+                        type: offer.type,
+                        pc_id: Math.random().toString(36).substring(7)
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Server error');
+                }
+                
+                const answer = await response.json();
+                
+                // Set remote description
+                await peerConnection.setRemoteDescription({
+                    type: answer.type,
+                    sdp: answer.sdp
+                });
+                
+                showStatus('🎉 Connected! The AI is listening...', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`❌ Error: ${error.message}`, 'error');
+                stopConversation();
+            }
+        }
+        
+        function stopConversation() {
+            // Stop local stream
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            
+            // Close peer connection
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            
+            // Reset UI
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('audioViz').classList.remove('active');
+            
+            showStatus('⏹️ Conversation ended', 'info');
+        }
+        
+        // Handle page unload
+        window.addEventListener('beforeunload', stopConversation);
+    </script>
+</body>
+</html>

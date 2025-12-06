@@ -1,0 +1,62 @@
+# Use AWS Lambda Python 3.12 base image for x86_64 (AMD64)
+FROM public.ecr.aws/lambda/python:3.12
+
+# Set working directory
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+# Install FFmpeg (required for pydub audio processing)
+# Lambda Python base image uses microdnf (minimal dnf) instead of yum
+# Install only necessary tools (curl may already be available as curl-minimal)
+RUN microdnf update -y && \
+    microdnf install -y wget tar xz && \
+    microdnf clean all
+
+# Download and install FFmpeg static binaries for x86_64 (AMD64)
+# Using johnvansickle.com which provides reliable static builds
+RUN mkdir -p /tmp/ffmpeg && \
+    cd /tmp/ffmpeg && \
+    echo "📥 Downloading FFmpeg static binary for x86_64..." && \
+    wget --no-verbose --timeout=300 --tries=3 \
+        https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz -O ffmpeg.tar.xz && \
+    echo "📦 Extracting FFmpeg archive..." && \
+    tar -xf ffmpeg.tar.xz --strip-components=1 && \
+    echo "📋 Files extracted:" && ls -la && \
+    cp ffmpeg /usr/local/bin/ffmpeg && \
+    cp ffprobe /usr/local/bin/ffprobe && \
+    chmod +x /usr/local/bin/ffmpeg /usr/local/bin/ffprobe && \
+    cd / && rm -rf /tmp/ffmpeg && \
+    echo "✅ FFmpeg installed successfully"
+
+# Verify FFmpeg installation
+RUN (ffmpeg -version && ffprobe -version && echo "✅ FFmpeg verified successfully") || \
+    (echo "⚠️ FFmpeg verification failed - checking locations..." && \
+     which ffmpeg || echo "ffmpeg not in PATH" && \
+     ls -la /usr/local/bin/ffmpeg* /usr/bin/ffmpeg* 2>/dev/null || echo "No FFmpeg binaries found")
+
+# Copy requirements file
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code from src directory (main app structure)
+COPY src/ ./src/
+# Copy lambda handler from lambda-deployment (has correct PostgreSQL + SQS logic)
+COPY lambda-deployment/lambda_handler.py .
+
+# Copy Firebase credentials (if exists)
+COPY firebase-credentials.json* ./
+
+# DO NOT copy .env - Lambda uses IAM roles and environment variables, not .env files
+# .env file contains local development credentials that should NOT be in Lambda
+
+# Fix permissions - Lambda runtime needs read permissions on all files
+# The Lambda runtime user needs to be able to read all files
+RUN chmod 644 lambda_handler.py && \
+    find app/ -type f -exec chmod 644 {} \; && \
+    find app/ -type d -exec chmod 755 {} \; && \
+    chmod 644 firebase-credentials.json* 2>/dev/null || true
+
+# Set the CMD to your handler
+# For AWS Lambda Python runtime base image, use: module.function
+CMD ["lambda_handler.lambda_handler"]

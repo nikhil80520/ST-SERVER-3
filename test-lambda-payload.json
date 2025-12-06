@@ -1,0 +1,8 @@
+﻿{
+  "Records": [
+    {
+      "messageId": "test-message",
+      "body": "{\"job_id\": \"test-job\", \"story_id\": 19, \"user_id_int\": 192, \"child_id_int\": 2}"
+    }
+  ]
+}

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Disable Function</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #log {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+        }
+        .log-info {
+            color: #2563eb;
+        }
+        .log-success {
+            color: #16a34a;
+        }
+        .log-error {
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Disable Functionality</h1>
+    
+    <div>
+        <h3>User ID:</h3>
+        <input type="text" id="testUserId" value="gTfJsGX3ZxdMUIVw6K1iJxmaZkt2" style="width: 400px; padding: 8px; font-size: 14px;">
+    </div>
+    
+    <div>
+        <h3>Reason:</h3>
+        <input type="text" id="testReason" value="Test from debug page" style="width: 400px; padding: 8px; font-size: 14px;">
+    </div>
+    
+    <div>
+        <button onclick="testDisable()" style="background: #dc2626; color: white; border: none;">🚫 Test Disable</button>
+        <button onclick="testEnable()" style="background: #16a34a; color: white; border: none;">✅ Test Enable</button>
+        <button onclick="testGetUser()" style="background: #2563eb; color: white; border: none;">👤 Get User</button>
+        <button onclick="clearLog()" style="background: #6b7280; color: white; border: none;">🗑️ Clear Log</button>
+    </div>
+    
+    <div id="log"></div>
+    
+    <script>
+        const API_BASE = window.location.origin;
+        const AUTH_HEADER = 'Basic ' + btoa('root:root');
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        async function apiCall(endpoint, options = {}) {
+            log(`Making API call to: ${endpoint}`, 'info');
+            log(`Options: ${JSON.stringify(options)}`, 'info');
+            
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    ...options,
+                    headers: {
+                        'Authorization': AUTH_HEADER,
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+
+                log(`Response status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'API call failed');
+                }
+
+                const data = await response.json();
+                log(`Response data: ${JSON.stringify(data).substring(0, 200)}...`, 'success');
+                return data;
+            } catch (error) {
+                log(`API Error: ${error.message}`, 'error');
+                console.error('API Error:', error);
+                throw error;
+            }
+        }
+        
+        async function testDisable() {
+            const userId = document.getElementById('testUserId').value.trim();
+            const reason = document.getElementById('testReason').value.trim();
+            
+            log('========================================', 'info');
+            log(`Testing DISABLE for user: ${userId}`, 'info');
+            log(`Reason: ${reason}`, 'info');
+            
+            if (!userId) {
+                log('ERROR: User ID is required', 'error');
+                alert('Please enter a user ID');
+                return;
+            }
+            
+            if (!reason) {
+                log('ERROR: Reason is required', 'error');
+                alert('Please enter a reason');
+                return;
+            }
+            
+            try {
+                const response = await apiCall(`/admin/users/${userId}/disable`, {
+                    method: 'POST',
+                    body: JSON.stringify({ user_id: userId, reason })
+                });
+                
+                log(`✅ SUCCESS: User ${userId} has been disabled`, 'success');
+                log(`New status: ${response.account_status.status}`, 'success');
+                alert(`✅ User ${userId} has been disabled`);
+            } catch (error) {
+                log(`❌ FAILED to disable account: ${error.message}`, 'error');
+                alert(`❌ Failed: ${error.message}`);
+            }
+        }
+        
+        async function testEnable() {
+            const userId = document.getElementById('testUserId').value.trim();
+            
+            log('========================================', 'info');
+            log(`Testing ENABLE for user: ${userId}`, 'info');
+            
+            if (!userId) {
+                log('ERROR: User ID is required', 'error');
+                alert('Please enter a user ID');
+                return;
+            }
+            
+            try {
+                const response = await apiCall(`/admin/users/${userId}/enable`, {
+                    method: 'POST'
+                });
+                
+                log(`✅ SUCCESS: User ${userId} has been enabled`, 'success');
+                log(`New status: ${response.account_status.status}`, 'success');
+                alert(`✅ User ${userId} has been enabled`);
+            } catch (error) {
+                log(`❌ FAILED to enable account: ${error.message}`, 'error');
+                alert(`❌ Failed: ${error.message}`);
+            }
+        }
+        
+        async function testGetUser() {
+            const userId = document.getElementById('testUserId').value.trim();
+            
+            log('========================================', 'info');
+            log(`Getting user details for: ${userId}`, 'info');
+            
+            if (!userId) {
+                log('ERROR: User ID is required', 'error');
+                alert('Please enter a user ID');
+                return;
+            }
+            
+            try {
+                const response = await apiCall(`/admin/users/${userId}`);
+                
+                const status = response.profile.account_status.status;
+                const canCreate = response.profile.account_status.can_create_stories;
+                
+                log(`✅ User found`, 'success');
+                log(`  Email: ${response.profile.parent.email}`, 'info');
+                log(`  Status: ${status}`, 'info');
+                log(`  Can create stories: ${canCreate}`, 'info');
+                
+                if (response.profile.account_status.disabled_reason) {
+                    log(`  Disabled reason: ${response.profile.account_status.disabled_reason}`, 'info');
+                }
+                
+                alert(`User: ${response.profile.parent.email}\nStatus: ${status}\nCan create: ${canCreate}`);
+            } catch (error) {
+                log(`❌ FAILED to get user: ${error.message}`, 'error');
+                alert(`❌ Failed: ${error.message}`);
+            }
+        }
+        
+        // Auto-load user on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            log('🚀 Debug page loaded', 'info');
+            log(`API Base: ${API_BASE}`, 'info');
+            testGetUser();
+        });
+    </script>
+</body>
+</html>

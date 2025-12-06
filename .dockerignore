@@ -1,0 +1,63 @@
+# Dockerignore file for FastAPI application
+# Ignore Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+
+# Test files
+tests/
+pytest.ini
+.pytest_cache/
+
+# Environment files (should be set via App Runner configuration)
+.env
+.env.*
+
+# Logs
+*.log
+
+# Static test files
+static/
+
+# Scripts not needed in production
+scripts/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+
+# Database files (if any)
+*.db
+*.sqlite
+*.sqlite3

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Conversational AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.disconnected {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .logs {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+        }
+
+        .audio-indicator {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .audio-visualizer {
+            display: inline-block;
+            width: 100%;
+            height: 60px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            animation: wave 1s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { height: 4px; }
+            50% { height: 40px; }
+        }
+
+        .speaking {
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ Conversational AI Test</h1>
+        
+        <div class="form-group">
+            <label for="token">Firebase Token / IoT Session Token:</label>
+            <textarea id="token" placeholder="Paste your token here..." required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="storyId">Story ID (Optional):</label>
+            <input type="text" id="storyId" placeholder="Leave empty for free storytelling">
+        </div>
+
+        <button id="connectBtn" onclick="toggleConnection()">
+            Connect & Start
+        </button>
+
+        <div id="status" class="status" style="display: none;"></div>
+
+        <div class="audio-indicator" id="audioIndicator" style="display: none;">
+            <div class="audio-visualizer">
+                <div class="wave"></div>
+            </div>
+            <p style="margin-top: 10px; color: #667eea;">🔊 Audio playing...</p>
+        </div>
+
+        <div class="logs" id="logs"></div>
+    </div>
+
+    <!-- Hidden audio element for playback -->
+    <audio id="remoteAudio" autoplay></audio>
+
+    <script>
+        let pc = null;
+        let pcId = null;
+        let isConnected = false;
+        let audioStream = null;
+
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logs.appendChild(entry);
+            logs.scrollTop = logs.scrollHeight;
+            console.log(message);
+        }
+
+        function setStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        async function toggleConnection() {
+            if (isConnected) {
+                disconnect();
+            } else {
+                await connect();
+            }
+        }
+
+        async function connect() {
+            const token = document.getElementById('token').value.trim();
+            const storyId = document.getElementById('storyId').value.trim() || null;
+            const connectBtn = document.getElementById('connectBtn');
+
+            if (!token) {
+                alert('Please enter a token');
+                return;
+            }
+
+            try {
+                connectBtn.disabled = true;
+                setStatus('Connecting...', 'connecting');
+                log('Starting WebRTC connection...');
+
+                // Create peer connection with STUN and TURN servers for NAT traversal
+                pc = new RTCPeerConnection({
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        // Twilio TURN servers for relay (when direct connection fails)
+                        { 
+                            urls: 'turn:global.turn.twilio.com:3478?transport=udp',
+                            username: 'f4b4035eaa76f4a55de5f4351567653ee4ff6fa97b50b6b334fcc1be9c27212d',
+                            credential: 'w1uxM55V9yVoqyVFjt+mxDBV0F87AUCemaYVQGxsPLw='
+                        },
+                        {
+                            urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
+                            username: 'f4b4035eaa76f4a55de5f4351567653ee4ff6fa97b50b6b334fcc1be9c27212d',
+                            credential: 'w1uxM55V9yVoqyVFjt+mxDBV0F87AUCemaYVQGxsPLw='
+                        },
+                        {
+                            urls: 'turn:global.turn.twilio.com:443?transport=tcp',
+                            username: 'f4b4035eaa76f4a55de5f4351567653ee4ff6fa97b50b6b334fcc1be9c27212d',
+                            credential: 'w1uxM55V9yVoqyVFjt+mxDBV0F87AUCemaYVQGxsPLw='
+                        }
+                    ],
+                    // Optional: Force relay for testing (comment out for normal operation)
+                    // iceTransportPolicy: 'relay'
+                });
+
+                // Get user media
+                log('Requesting microphone access...');
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
+                log('✓ Microphone access granted');
+                log(`  Local stream tracks: ${stream.getTracks().length}`);
+                stream.getTracks().forEach(track => {
+                    log(`  - Track ${track.kind}: id=${track.id}, enabled=${track.enabled}, muted=${track.muted}`);
+                });
+
+                log('[INFO] 📡 Creating WebRTC connection...');
+                
+                // Add audio track to peer connection
+                stream.getTracks().forEach(track => {
+                    const sender = pc.addTrack(track, stream);
+                    log(`✓ Added local track: ${track.kind}, enabled: ${track.enabled}`);
+                });
+                
+                log('[INFO] 🌐 Connecting to server...');
+
+                // Handle incoming tracks (bot audio)
+                pc.ontrack = (event) => {
+                    log(`✓ Received remote track: ${event.track.kind}, id: ${event.track.id}`);
+                    log(`  Track enabled: ${event.track.enabled}, muted: ${event.track.muted}, readyState: ${event.track.readyState}`);
+                    log(`  Streams count: ${event.streams ? event.streams.length : 0}`);
+                    
+                    const audioElement = document.getElementById('remoteAudio');
+                    
+                    if (event.streams && event.streams[0]) {
+                        log(`  Stream id: ${event.streams[0].id}, tracks: ${event.streams[0].getTracks().length}`);
+                        audioElement.srcObject = event.streams[0];
+                        log('✓ Remote audio stream connected to audio element');
+                        
+                        // Show audio indicator
+                        document.getElementById('audioIndicator').style.display = 'block';
+                        
+                        // Monitor stream tracks
+                        event.streams[0].getTracks().forEach(track => {
+                            log(`  Stream track: ${track.kind}, enabled: ${track.enabled}, muted: ${track.muted}`);
+                            
+                            track.onended = () => log(`⚠️ Track ${track.id} ended`);
+                            track.onmute = () => log(`🔇 Track ${track.id} muted`);
+                            track.onunmute = () => log(`🔊 Track ${track.id} unmuted`);
+                        });
+                        
+                        // Explicitly try to play audio
+                        audioElement.play().then(() => {
+                            log('🔊 Audio playback started successfully');
+                            log(`  Audio element: paused=${audioElement.paused}, volume=${audioElement.volume}, muted=${audioElement.muted}`);
+                            document.querySelector('.audio-visualizer').classList.add('speaking');
+                        }).catch(err => {
+                            log(`⚠️ Audio playback failed: ${err.message}`);
+                            log('  This might be due to browser autoplay policy');
+                            log('  Click anywhere on the page to enable audio playback');
+                            document.body.addEventListener('click', () => {
+                                log('🖱️ User clicked, attempting to play audio...');
+                                audioElement.play().then(() => {
+                                    log('🔊 Audio playback enabled after user interaction');
+                                }).catch(e => log(`Still failed: ${e.message}`));
+                            }, { once: true });
+                        });
+                        
+                        // Monitor audio playback
+                        audioElement.onplaying = () => {
+                            log('🔊 Audio element is now playing');
+                            document.querySelector('.audio-visualizer').classList.add('speaking');
+                        };
+                        
+                        audioElement.onpause = () => {
+                            log('🔇 Audio element paused');
+                            document.querySelector('.audio-visualizer').classList.remove('speaking');
+                        };
+                        
+                        audioElement.onended = () => {
+                            log('⏹️ Audio playback ended');
+                        };
+                        
+                        audioElement.onerror = (err) => {
+                            log(`❌ Audio error: ${audioElement.error?.message || 'Unknown error'}, code: ${audioElement.error?.code}`);
+                        };
+                        
+                        audioElement.onloadedmetadata = () => {
+                            log(`📊 Audio metadata loaded: duration=${audioElement.duration}s`);
+                        };
+                        
+                        audioElement.oncanplay = () => {
+                            log('✅ Audio can play');
+                        };
+                        
+                        // Log initial state
+                        log(`  Audio element initial state: paused=${audioElement.paused}, volume=${audioElement.volume}, muted=${audioElement.muted}`);
+                    } else {
+                        log('⚠️ No streams in track event');
+                    }
+                };
+
+                // Handle ICE candidates
+                pc.onicecandidate = async (event) => {
+                    if (event.candidate) {
+                        log('Sending ICE candidate to server...');
+                        try {
+                            await fetch('http://localhost:8000/conversation/api/offer', {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    pc_id: pcId,
+                                    ice_candidate: {
+                                        candidate: event.candidate.candidate,
+                                        sdpMid: event.candidate.sdpMid,
+                                        sdpMLineIndex: event.candidate.sdpMLineIndex
+                                    }
+                                })
+                            });
+                            log('✓ ICE candidate sent');
+                        } catch (err) {
+                            log(`✗ Failed to send ICE candidate: ${err.message}`);
+                        }
+                    }
+                };
+
+                // Handle connection state changes
+                pc.onconnectionstatechange = () => {
+                    log(`Connection state: ${pc.connectionState}`);
+                    if (pc.connectionState === 'connected') {
+                        setStatus('Connected! Speak into your microphone...', 'connected');
+                        log('🎉 WebRTC connection fully established!');
+                    } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                        setStatus('Connection lost', 'error');
+                        log(`❌ Connection ${pc.connectionState}`);
+                        disconnect();
+                    } else if (pc.connectionState === 'connecting') {
+                        log('🔄 WebRTC connection in progress...');
+                    }
+                };
+
+                pc.oniceconnectionstatechange = () => {
+                    log(`ICE connection state: ${pc.iceConnectionState}`);
+                    if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+                        log('✅ ICE connection established!');
+                    } else if (pc.iceConnectionState === 'failed') {
+                        log('❌ ICE connection failed!');
+                        setStatus('ICE connection failed', 'error');
+                    }
+                };
+                
+                pc.onicegatheringstatechange = () => {
+                    log(`ICE gathering state: ${pc.iceGatheringState}`);
+                };
+
+                pc.onsignalingstatechange = () => {
+                    log(`Signaling state: ${pc.signalingState}`);
+                };
+
+                // Create and send offer
+                log('Creating WebRTC offer...');
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                log('✓ Local description set');
+
+                log('Sending offer to server...');
+                log(`  Offer SDP length: ${offer.sdp?.length || 0} chars`);
+                log(`  Story ID: ${storyId || 'none'}`);
+                
+                const requestBody = {
+                    session_token: token,
+                    story_id: storyId,
+                    sdp: offer.sdp,
+                    type: offer.type
+                };
+                
+                log(`  Request body size: ${JSON.stringify(requestBody).length} bytes`);
+                
+                // Set a timeout for the fetch
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    controller.abort();
+                    log('⏱️ Request timeout after 30 seconds');
+                }, 30000);
+                
+                try {
+                    const response = await fetch('http://localhost:8000/conversation/api/offer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(requestBody),
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    log(`✓ Server responded with status: ${response.status} ${response.statusText}`);
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        log(`✗ Server error response: ${errorText}`);
+                        throw new Error(`Server error: ${response.statusText}`);
+                    }
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    if (err.name === 'AbortError') {
+                        throw new Error('Server request timeout - server may be initializing models');
+                    }
+                    throw err;
+                }
+
+                const data = await response.json();
+                pcId = data.pc_id;
+                log(`✓ Received answer from server (pc_id: ${pcId})`);
+
+                // Check if connection still exists (might have been closed)
+                if (!pc || pc.connectionState === 'closed') {
+                    throw new Error('Connection closed before answer received');
+                }
+
+                // Set remote description
+                await pc.setRemoteDescription({
+                    type: data.type,
+                    sdp: data.sdp
+                });
+                log('✓ Remote description set');
+
+                isConnected = true;
+                connectBtn.textContent = 'Disconnect';
+                connectBtn.disabled = false;
+                setStatus('Connected! The AI is speaking...', 'connected');
+                log('🎉 Connection established! Listening for AI response...');
+
+            } catch (error) {
+                log(`✗ Connection failed: ${error.message}`);
+                console.error('Connection error:', error);
+                setStatus(`Error: ${error.message}`, 'error');
+                connectBtn.disabled = false;
+                
+                // Clean up connection if it exists
+                if (pc && pc.connectionState !== 'closed') {
+                    disconnect();
+                }
+            }
+        }
+
+        function disconnect() {
+            log('Disconnecting...');
+            
+            if (pc && pc.connectionState !== 'closed') {
+                try {
+                    pc.close();
+                } catch (err) {
+                    log(`Warning: Error closing connection: ${err.message}`);
+                }
+            }
+            pc = null;
+
+            const audioElement = document.getElementById('remoteAudio');
+            if (audioElement.srcObject) {
+                audioElement.srcObject.getTracks().forEach(track => track.stop());
+                audioElement.srcObject = null;
+            }
+
+            document.getElementById('audioIndicator').style.display = 'none';
+            isConnected = false;
+            document.getElementById('connectBtn').textContent = 'Connect & Start';
+            document.getElementById('connectBtn').disabled = false;
+            setStatus('Disconnected', 'disconnected');
+            log('✓ Disconnected');
+        }
+
+        // Auto-fill token from URL parameter if present
+        const urlParams = new URLSearchParams(window.location.search);
+        const tokenParam = urlParams.get('token');
+        if (tokenParam) {
+            document.getElementById('token').value = tokenParam;
+        }
+    </script>
+</body>
+</html>
